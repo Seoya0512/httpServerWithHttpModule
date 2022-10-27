@@ -70,7 +70,7 @@ const httpRequestListener = function (request, response) {
           const post = JSON.parse(body);
 
           posts.push({
-            id: posts.id,
+            id: post.id,
             title: post.title,
             content:post.content,
             userId: post.userId,
