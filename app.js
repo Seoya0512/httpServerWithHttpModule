@@ -31,17 +31,6 @@ const posts = [
 
 // 게시판 글 정보 
 const getPostsList = [];
-const keys = [
-  "userID",
-  "userName",
-  "postingId",
-  "postingImageUrl",
-  "postingContent",
-];
-const values = [
-  [3, "new user 1", 3, "내용 1", "sampleContent3"],
-  [4, "new user 2", 4, "내용 2", "sampleContent4"],
-];
 
 users.forEach((element) => {
   const obj = {};
@@ -58,13 +47,6 @@ users.forEach((element) => {
   getPostsList.push(obj);
 });
 
-for (j in values) {
-  const newObj = {};
-  for (i in keys) {
-    newObj[keys[i]] = values[j][i];
-  }
-  getPostsList.push(newObj);
-}
 
 // HTTP 모듈 불러오기
 const http = require("http");
