@@ -11,9 +11,10 @@ const users = [
     name: "Fabian Predovic",
     email: "Connell29@gmail.com",
     password: "password",
-  },
+  }
 ];
 
+// 게시글 정보 
 const posts = [
   {
     id: 1,
@@ -26,92 +27,127 @@ const posts = [
     title: "HTTP의 특성",
     content: "Request/Response와 Stateless!!",
     userId: 1,
-  },
+  }
 ];
 
 // 게시판 글 정보 
-const getPostsList = [];
+function getPostsList (users,posts) {
+  const info = [];
 
-users.forEach((element) => {
-  const obj = {};
-  obj["userID"] = element.id;
-  obj["userName"] = element.name;
+  users.forEach((element) => {
+    const obj = {};
+    obj["userID"] = element.id;
+    obj["userName"] = element.name;
 
-  for (j in posts) {
-    if (element.id === posts[j].id) {
-      obj["postingID"] = posts[j].id;
-      obj["postingTitle"] = posts[j].title;
-      obj["postingContent"] = posts[j].content;
+    for (j in posts) {
+      if (element.id === posts[j].id) {
+        obj["postingID"] = posts[j].id;
+        obj["postingTitle"] = posts[j].title;
+        obj["postingContent"] = posts[j].content;
+      }
     }
-  }
-  getPostsList.push(obj);
-});
+    info.push(obj);
+  })
+  return info; 
+};
 
 
-// HTTP 모듈 불러오기
+// 1. HTTP 모듈 불러오기
 const http = require("http");
 
-// HTTP 서버 객체 생성
+// 2. HTTP 서버 객체 생성
 const server = http.createServer();
 
-// HTTP 요청(이벤트)이 발생하면 실행되는 listener(함수) 정의
+//3. HTTP 요청(이벤트)이 발생하면 실행되는 listener(함수) 정의
 const httpRequestListener = function (request, response) {
   const { url, method } = request;
+
   if (method === "GET") {
-    if (url === "/postsdata") {
+    if (url === "/posts") {
       response.writeHead(200, { "Content-Type": "application/json" });
-      response.end(JSON.stringify({ data: getPostsList }));
+      response.end(JSON.stringify({ data: getPostsList(users,posts) }));
     }
-  } else if (method === "POST") {
-    if (url === "/user/signup") {
+  } 
+
+ 
+  if (method === "POST") {
+     // 회원가입
+    if (url === "/users/signup") {
       let body = "";
 
-      request.on("data", (data) => {
-        body += data;
-      });
-
+      request.on("data", (data) => { body += data});
       request.on("end", () => {
         const user = JSON.parse(body);
 
+        // 사용자 정보 입력 
         users.push({
           id: user.id,
           name: user.name,
           email: user.email,
           password: user.password,
         });
+
         response.writeHead(200, { "Content-Type": "application/json" });
         response.end(JSON.stringify({ message: "userCreated" }));
       });
-    } else if (url === "/posts") {
+    } 
+      
+    // 게시물 생성 
+    if (url === "/posts") {
       let body = "";
 
-      request.on("data", (data) => {
-        body += data;
-      });
-
+      request.on("data", (data) => { body += data;});
       request.on("end", () => {
         const post = JSON.parse(body);
-
+        const user = users.find((user) => user.id === post.userId);
+      
+      if(user) {
         posts.push({
           id: post.id,
           title: post.title,
           content: post.content,
+          img : post.img,
           userId: post.userId,
         });
+
         response.writeHead(200, { "Content-Type": "application/json" });
-        response.end(JSON.stringify({ message: "postCreated" }));
+        response.end(JSON.stringify({ "message": "PostCreated" }));
+      } else {
+        response.writeHead(404, { "Content-Type": "application/json"});
+        response.end(JSON.stringify({ "message": "USER DOSE NOT EXISTS!!!"}));
+      }
       });
     }
   }
+
+  if (method === "PATCH") {
+    if(url.startsWith("/posts")) {
+      let body = "";
+
+      request.on("data", (data) => {body += data;});
+      request.on("end", () => {
+        const postId = parseInt(url.split("/")[2]);
+        const data = JSON.parse(body)
+        const post = posts.find((post) => post.id === postId);
+
+        post.title = data.title;
+        post.content = data.content;
+
+        response.writeHead(200, {"Content-Type" : "application/json"});
+        response.end(JSON.stringify({ post : post }))
+      }
+    )};
+  }
 };
+
 
 // http request가 발생하면 httpRequestListener가 실행될 수 있도록
 // request 이벤트에 httpRequestListener(함수) 등록
 server.on("request", httpRequestListener);
 
-const IP = "127.0.0.1";
 const PORT = 8000;
+const IP = "127.0.0.1";
 
-server.listen(PORT, IP, function () {
+server.listen(PORT, IP, function() {
   console.log(`Listening to requests on port ${PORT}`);
 });
