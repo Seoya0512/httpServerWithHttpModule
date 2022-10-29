@@ -138,6 +138,19 @@ const httpRequestListener = function (request, response) {
       }
     )};
   }
+
+  if (method === "DELETE") {
+    // 게시물 삭제 
+    if(url.startsWith("/posts")) {
+      const postId = parseInt(url.split("/")[2]);
+      const indexOfPostId = posts.findIndex((post) => post.id === postId);
+
+      post.splice(indexOfPostId, 1)
+
+      response.writeHead(200, { "Content-Type": "application/json" });
+      response.end(JSON.stringify({ post: post }));
+    }
+  }
 };
 
 
